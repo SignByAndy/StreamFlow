@@ -23,23 +23,7 @@ async function main() {
         email TEXT
       )
     `);
-
-    // ajouter un utilisateur
-    await client.query(
-      `INSERT INTO users (name, email) VALUES ($1, $2)`,
-      ['Ali', 'ali@mail.com']
-    );
-
-    // vide la table users
-    await client.query(
-        `TRUNCATE TABLE users`,
-    );
-
-    // lire tous les utilisateurs
-    const res = await client.query(`SELECT * FROM users`);
-    console.log(res.rows);
-
-  } catch (err) {
+    } catch (err) {
     console.error(err);
   } finally {
     await client.end(); // fermer la connexion
