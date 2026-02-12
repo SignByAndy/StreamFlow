@@ -1,33 +1,66 @@
-require('dotenv').config();  // pour lire le fichier .env
-const { Client } = require('pg'); // driver PostgreSQL
+require('dotenv').config();
+const { Pool } = require('pg');
 
-// configuration de la connexion
-const client = new Client({
+/**
+ * Configuration de la connexion PostgreSQL
+ * Utilise Pool pour gérer plusieurs connexions simultanées
+ */
+const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
   database: process.env.DB_DATABASE,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  port: process.env.DB_PORT || 5432,
 });
 
-async function main() {
+/**
+ * Initialise les tables de la base de données
+ */
+async function initDatabase() {
   try {
-    await client.connect(); // se connecter à PostgreSQL
-    console.log('Connecté à PostgreSQL ✅');
-
-    // créer une table si elle n'existe pas
-    await client.query(`
+    // Table users
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
-        name TEXT,
-        email TEXT
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        twitch_channel VARCHAR(255),
+        logo_url VARCHAR(500),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    } catch (err) {
-    console.error(err);
-  } finally {
-    await client.end(); // fermer la connexion
+
+    // Table plannings
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS plannings (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Table events
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS events (
+        id SERIAL PRIMARY KEY,
+        planning_id INTEGER REFERENCES plannings(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        start_time TIMESTAMP NOT NULL,
+        end_time TIMESTAMP NOT NULL,
+        color VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log('✅ Tables créées avec succès');
+  } catch (err) {
+    console.error('❌ Erreur lors de la création des tables:', err);
   }
 }
 
-main();
+module.exports = { pool, initDatabase };

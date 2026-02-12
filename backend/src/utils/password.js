@@ -1,27 +1,7 @@
-/**
- * Utilitaire de gestion des mots de passe
- * Implémentation simple sans crypto
- */
+const crypto = require('crypto');
 
-/**
- * Génère un hash simple basé sur une chaîne
- */
-function simpleHash(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(36);
-}
-
-/**
- * Génère un salt aléatoire
- */
 function generateSalt() {
-  return Math.random().toString(36).substring(2, 15) + 
-         Math.random().toString(36).substring(2, 15);
+  return crypto.randomBytes(16).toString('hex');
 }
 
 /**
@@ -31,7 +11,7 @@ function generateSalt() {
  */
 function hashPassword(password) {
   const salt = generateSalt();
-  const hash = simpleHash(password + salt);
+  const hash = crypto.createHash('sha256').update(password + salt).digest('hex');
   return Promise.resolve(salt + ':' + hash);
 }
 
@@ -43,7 +23,7 @@ function hashPassword(password) {
  */
 function verifyPassword(password, hash) {
   const [salt, originalHash] = hash.split(':');
-  const testHash = simpleHash(password + salt);
+  const testHash = crypto.createHash('sha256').update(password + salt).digest('hex');
   return Promise.resolve(originalHash === testHash);
 }
 
