@@ -1,22 +1,49 @@
-<h2>Connexion</h2>
+<div class="login-container">
+  <h2>Connexion</h2>
 
-<form (ngSubmit)="onLogin()">
-  <input
-    type="email"
-    placeholder="Email"
-    [(ngModel)]="email"
-    name="email"
-    required
-  />
+  <div class="error-message" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
 
-  <input
-    type="password"
-    placeholder="Mot de passe"
-    [(ngModel)]="password"
-    name="password"
-    required
-  />
+  <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        placeholder="exemple@email.com"
+        [(ngModel)]="email"
+        name="email"
+        required
+        [disabled]="isLoading"
+      />
+    </div>
 
-  <button type="submit">Se connecter</button>
-</form>
+    <div class="form-group">
+      <label for="password">Mot de passe</label>
+      <input
+        id="password"
+        type="password"
+        placeholder="Entrez votre mot de passe"
+        [(ngModel)]="password"
+        name="password"
+        required
+        [disabled]="isLoading"
+      />
+    </div>
+
+    <button 
+      type="submit" 
+      [disabled]="isLoading || !loginForm.valid"
+      class="btn-primary"
+    >
+      {{ isLoading ? 'Connexion en cours...' : 'Se connecter' }}
+    </button>
+  </form>
+
+  <div class="footer-links">
+    <a href="#">Mot de passe oublié ?</a>
+    <a href="#">Créer un compte</a>
+  </div>
+</div>
 

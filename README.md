@@ -37,8 +37,6 @@ Application web permettant aux streamers de créer, gérer et exporter leur plan
 ### Base de données
 
 * PostgreSQL
-* Prisma ORM
-* Base de données relationnelle
 
 ---
 
@@ -52,6 +50,6 @@ Application web permettant aux streamers de créer, gérer et exporter leur plan
 
 # 📄 phase du projet
 
-* En cours (première version disponible le 13/02/2026 à 17h)
+* En cours.
 
 ---
