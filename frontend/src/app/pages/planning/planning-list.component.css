@@ -44,6 +44,51 @@
   color: var(--text-muted);
 }
 
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.form-group input {
+  border: 2px solid #0f172a;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-secondary {
+  background: #e2e8f0;
+  color: #0f172a;
+  border: 2px solid #0f172a;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #1d4ed8;
+  color: #ffffff;
+  border: 2px solid #1d4ed8;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .btn-add {
   background: #6365f1ea;
   color: #ffffff;
@@ -53,6 +98,10 @@
   font-weight: 800;
   cursor: pointer;
   box-shadow: 0 8px 14px rgba(15, 23, 42, 0.3);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-add:hover {
@@ -193,7 +242,39 @@
   letter-spacing: 1.8px;
 }
 
-.day-slot {
+.day-streams {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.stream-card {
+  background: #ffffff;
+  border: 2px solid #0f172a;
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.12);
+}
+
+.stream-time {
+  font-size: 12px;
+  font-weight: 800;
+  color: #1d4ed8;
+}
+
+.stream-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-light);
+}
+
+.stream-game {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.day-add {
   margin-top: auto;
   border: 2px dashed #0f172a;
   border-radius: 12px;
@@ -204,6 +285,44 @@
   font-weight: 900;
   color: #0f172a;
   background: #e2e8f0;
+  cursor: pointer;
+}
+
+.day-add:hover {
+  background: #c7d2fe;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.modal {
+  background: #ffffff;
+  border: 2px solid #0f172a;
+  border-radius: 16px;
+  padding: 18px;
+  width: min(420px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3);
+}
+
+.modal h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 .empty-board {

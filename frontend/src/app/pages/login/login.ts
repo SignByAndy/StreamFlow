@@ -3,11 +3,10 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { CryptoService } from '../../services/crypto.service';
 
 /**
  * Composant de connexion
- * Gère l'authentification des utilisateurs avec double hachage
+ * Gère l'authentification des utilisateurs
  */
 @Component({
   selector: 'app-login',
@@ -18,41 +17,44 @@ import { CryptoService } from '../../services/crypto.service';
 })
 export class LoginComponent {
   private authService = inject(AuthService);
-  private cryptoService = inject(CryptoService);
   private router = inject(Router);
 
   email = '';
   password = '';
   errorMessage = '';
-  isLoading = false;
+  processing = false;
 
   async onLogin(form: NgForm) {
     this.errorMessage = '';
 
-    // Validation
+    // Validation: Email
     if (!this.email || !this.email.trim()) {
       this.errorMessage = 'L\'email est requis';
       return;
     }
 
+    // Validation: Mot de passe
     if (!this.password || !this.password.trim()) {
       this.errorMessage = 'Le mot de passe est requis';
       return;
     }
 
+    // Validation: Format d'email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(this.email)) {
       this.errorMessage = 'Format d\'email invalide';
       return;
     }
 
-    this.isLoading = true;
+    this.processing = true;
 
     try {
+      // Appel au service de connexion
       const response = await this.authService.login(this.email, this.password);
+      // Succès: rediriger vers dashboard
       this.router.navigate(['/dashboard']);
     } catch (error: any) {
-      // Extraire le message d'erreur du serveur
+      // Erreur: afficher le message
       if (error?.error?.error) {
         this.errorMessage = error.error.error;
       } else if (typeof error?.error === 'string') {
@@ -63,10 +65,10 @@ export class LoginComponent {
         this.errorMessage = 'Email ou mot de passe incorrect';
       }
       
+      // Réinitialiser le champ password
       this.password = '';
       form.controls['password']?.reset();
-      // Reset isLoading immédiatement
-      this.isLoading = false;
+      this.processing = false;
     }
   }
 

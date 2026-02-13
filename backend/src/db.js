@@ -8,7 +8,7 @@ const { Pool } = require('pg');
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
-  database: process.env.DB_DATABASE,
+  database: process.env.DB_NAME || process.env.DB_DATABASE,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
 });
@@ -38,6 +38,19 @@ async function initDatabase() {
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         title VARCHAR(255) NOT NULL,
         week_start_date DATE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS streams (
+        id SERIAL PRIMARY KEY,
+        planning_id INTEGER REFERENCES plannings(id) ON DELETE CASCADE,
+        day_index INTEGER NOT NULL CHECK (day_index >= 0 AND day_index <= 6),
+        title VARCHAR(255) NOT NULL,
+        game VARCHAR(255),
+        start_time TIME NOT NULL,
+        end_time TIME NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);

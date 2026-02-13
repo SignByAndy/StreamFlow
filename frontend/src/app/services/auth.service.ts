@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, throwError, timeout } from 'rxjs';
+import { BehaviorSubject, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { CryptoService } from './crypto.service';
 
+// Représente un utilisateur
 export interface User {
   id: number;
   name: string;
@@ -13,6 +14,7 @@ export interface User {
   created_at?: string;
 }
 
+// Réponse de l'API d'authentification
 export interface AuthResponse {
   user: User;
   token: string;
@@ -48,6 +50,7 @@ export class AuthService {
    * Inscription d'un nouvel utilisateur
    */
   async register(name: string, email: string, password: string): Promise<AuthResponse> {
+    // Hacher le mot de passe côté client
     const hashedPassword = await this.cryptoService.hashPassword(password);
     
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, {
@@ -55,54 +58,37 @@ export class AuthService {
       email,
       password: hashedPassword
     }).pipe(
-      timeout(10000),
       tap(response => {
+        // Sauvegarder le token et l'utilisateur
         localStorage.setItem('token', response.token);
         localStorage.setItem('currentUser', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
       }),
       catchError(error => {
-        console.error('❌ Erreur register - status:', error.status, 'body:', error.error);
         return throwError(() => error);
       })
     ).toPromise() as Promise<AuthResponse>;
   }
 
-  /**
-   * Connexion d'un utilisateur
-   */
+  /** Connecte un utilisateur */
   async login(email: string, password: string): Promise<AuthResponse> {
+    // Hacher le mot de passe côté client
     const hashedPassword = await this.cryptoService.hashPassword(password);
 
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, {
       email,
       password: hashedPassword
     }).pipe(
-      timeout(10000),
       tap(response => {
+        // Sauvegarder le token et l'utilisateur
         localStorage.setItem('token', response.token);
         localStorage.setItem('currentUser', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
       }),
       catchError(error => {
-        console.error('❌ Erreur login - status:', error.status, 'body:', error.error);
         return throwError(() => error);
       })
     ).toPromise() as Promise<AuthResponse>;
-  }
-
-  /**
-   * Récupère le profil de l'utilisateur connecté
-   */
-  getProfile(): Observable<{ user: User }> {
-    return this.http.get<{ user: User }>(`${this.apiUrl}/profile`);
-  }
-
-  /**
-   * Met à jour le profil de l'utilisateur
-   */
-  async updateProfile(data: Partial<User>): Promise<{ user: User }> {
-    return this.http.put<{ user: User }>(`${this.apiUrl}/profile`, data).toPromise() as Promise<{ user: User }>;
   }
 
   /**

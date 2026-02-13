@@ -1,9 +1,11 @@
 <div class="login-container">
   <h2>Connexion</h2>
 
-  <div class="error-message" *ngIf="errorMessage">
-    {{ errorMessage }}
-  </div>
+  @if (errorMessage) {
+    <div class="error-message">
+      {{ errorMessage }}
+    </div>
+  }
 
   <form (ngSubmit)="onLogin(loginForm)" #loginForm="ngForm">
     <div class="form-group">
@@ -15,7 +17,7 @@
         [(ngModel)]="email"
         name="email"
         required
-        [disabled]="isLoading"
+        [disabled]="processing"
       />
     </div>
 
@@ -28,13 +30,13 @@
         [(ngModel)]="password"
         name="password"
         required
-        [disabled]="isLoading"
+        [disabled]="processing"
       />
     </div>
 
     <button 
       type="submit" 
-      [disabled]="isLoading || !loginForm.valid"
+      [disabled]="processing || !loginForm.valid"
       class="btn-primary"
     >
       Se connecter

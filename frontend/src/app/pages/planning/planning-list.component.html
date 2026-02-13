@@ -5,39 +5,44 @@
         <h2>Mes plannings</h2>
         <div class="subtitle">Choisis un planning</div>
       </div>
-      <button class="btn-add" (click)="createPlanning()">
+      <a class="btn-add" [routerLink]="['/planning/new']">
         + Nouveau planning
-      </button>
+      </a>
     </div>
 
-    <div *ngIf="isLoading" class="status">Chargement...</div>
-    <div *ngIf="!isLoading && plannings.length === 0" class="status">
-      Aucun planning pour le moment.
-    </div>
-
-    <div class="planning-list" *ngIf="plannings.length > 0">
-      <div
-        class="planning-item"
-        *ngFor="let planning of plannings"
-        [class.active]="activePlanning?.id === planning.id"
-        (click)="selectPlanning(planning)"
-      >
-        <div>
-          <div class="title">{{ planning.title }}</div>
-          <div class="date">{{ formatWeekRange(planning.week_start_date) }}</div>
-        </div>
-        <button
-          class="btn-delete"
-          type="button"
-          aria-label="Supprimer le planning"
-          (click)="$event.stopPropagation(); deletePlanning(planning)"
-        >
-          x
-        </button>
+    @if (plannings.length === 0 && !errorMessage) {
+      <div class="status">
+        Aucun planning pour le moment.
       </div>
-    </div>
+    }
 
-    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+    @if (plannings.length ) {
+      <div class="planning-list">
+        @for (planning of plannings; track planning.id) {
+          <div
+            class="planning-item"
+            [class.active]="activePlanning?.id === planning.id"
+            (click)="selectionnnerPlanning(planning)"
+          >
+            <div>
+              <div class="title">{{ planning.title }}</div>
+              <div class="date">{{ calculerPlage(planning.week_start_date) }}</div>
+            </div>
+            <button
+              class="btn-delete"
+              type="button"
+              (click)="$event.stopPropagation(); supprimerPlanning(planning)"
+            >
+              x
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="error-message">{{ errorMessage }}</div>
+    }
   </aside>
 
   <section class="planning-board">
@@ -48,19 +53,84 @@
       </div>
     </div>
 
-    <div class="week-grid" *ngIf="activePlanning; else emptyBoard">
-      <div class="day-column" *ngFor="let day of weekDays">
-        <div class="day-header">{{ day }}</div>
-        <div class="day-slot">
-          <span>+</span>
-        </div>
-      </div>
-    </div>
+    @if (activePlanning) {
+      <div class="week-grid">
+        @for (day of weekDays; let i = $index; track i) {
+          <div class="day-column">
+            <div class="day-header">{{ day }}</div>
 
-    <ng-template #emptyBoard>
+            <div class="day-streams">
+              @for (stream of obtenirStreamsJour(i); track stream.id) {
+                <div class="stream-card">
+                  <div class="stream-time">
+                    {{ formaterHeure(stream.start_time) }} - {{ formaterHeure(stream.end_time) }}
+                  </div>
+                  <div class="stream-title">{{ stream.title }}</div>
+                  @if (stream.game) {
+                    <div class="stream-game">{{ stream.game }}</div>
+                  }
+                </div>
+              }
+            </div>
+
+            <button class="day-add" type="button" (click)="ouvrirFormulaireStream(i)">
+              +
+            </button>
+          </div>
+        }
+      </div>
+    } @else {
       <div class="empty-board">
         Crée un planning pour afficher la grille.
       </div>
-    </ng-template>
+    }
   </section>
+
+  @if (isStreamFormOpen) {
+    <div class="modal-backdrop">
+      <div class="modal">
+        <h3>Ajouter un stream</h3>
+
+        <div class="form-group">
+          <label for="streamTitle">Titre du stream *</label>
+          <input
+            id="streamTitle"
+            type="text"
+            [(ngModel)]="streamTitle"
+            placeholder="Ex: Let's Play..."
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="streamGame">Jeu (optionnel)</label>
+          <input
+            id="streamGame"
+            type="text"
+            [(ngModel)]="streamGame"
+            placeholder="Ex: Elden Ring"
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="streamStart">Heure de débuts *</label>
+            <input id="streamStart" type="time" [(ngModel)]="streamStartTime" />
+          </div>
+          <div class="form-group">
+            <label for="streamEnd">Heure de fin *</label>
+            <input id="streamEnd" type="time" [(ngModel)]="streamEndTime" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-secondary" type="button" (click)="fermerFormulaire()">
+            Annuler
+          </button>
+          <button class="btn-primary" type="button" (click)="creerStream()">
+            Créer
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { CryptoService } from '../../services/crypto.service';
 
 /**
  * Composant d'inscription
@@ -18,7 +17,6 @@ import { CryptoService } from '../../services/crypto.service';
 })
 export class RegisterComponent {
   private authService = inject(AuthService);
-  private cryptoService = inject(CryptoService);
   private router = inject(Router);
 
   name = '';
@@ -26,7 +24,7 @@ export class RegisterComponent {
   password = '';
   confirmPassword = '';
   errorMessage = '';
-  isLoading = false;
+  processing = false;
 
   async onRegister() {
     this.errorMessage = '';
@@ -63,17 +61,15 @@ export class RegisterComponent {
       return;
     }
 
-    this.isLoading = true;
+    this.processing = true;
 
     try {
-      const response = await this.authService.register(this.name, this.email, this.password);
-      console.log('Inscription réussie:', response);
-      // Rediriger vers dashboard
+      await this.authService.register(this.name, this.email, this.password);
       this.router.navigate(['/dashboard']);
     } catch (error: any) {
       this.errorMessage = error?.error?.error || 'Erreur lors de l\'inscription';
     } finally {
-      this.isLoading = false;
+      this.processing = false;
     }
   }
 

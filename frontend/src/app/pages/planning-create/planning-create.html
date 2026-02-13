@@ -1,0 +1,28 @@
+<div class="planning-create">
+  <div class="card">
+    <h2>Nouveau planning</h2>
+
+    @if (errorMessage) {
+      <div class="error-message">
+        {{ errorMessage }}
+      </div>
+    }
+
+    <div class="form-group">
+      <label for="title">Nom du planning</label>
+      <input id="title" type="text" [(ngModel)]="title" />
+    </div>
+
+    <div class="form-group">
+      <label for="weekStart">Semaine</label>
+      <input id="weekStart" type="week" [(ngModel)]="weekValue" />
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-secondary" type="button" (click)="cancel()">Annuler</button>
+      <button class="btn-primary" type="button" (click)="submit()" [disabled]="processing">
+        Creer
+      </button>
+    </div>
+  </div>
+</div>

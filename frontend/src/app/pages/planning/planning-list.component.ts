@@ -1,129 +1,193 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PlanningService, Planning } from '../../services/planning.service';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { PlanningService, Planning, StreamItem } from '../../services/planning.service';
 
+/**
+ * Composant PLANNING LIST
+ * Affiche:
+ * - Une sidebar avec la liste des plannings de l'utilisateur
+ * - Une grille 7 jours (lun->dim) affichant les streams de chaque jour
+ * - Un formulaire modal pour ajouter des streams
+ */
 @Component({
   selector: 'app-planning-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './planning-list.component.html',
   styleUrl: './planning-list.component.css'
 })
-export class PlanningListComponent implements OnInit {
+export class PlanningListComponent implements OnInit, OnDestroy {
   private planningService = inject(PlanningService);
 
   plannings: Planning[] = [];
   activePlanning: Planning | null = null;
-  isLoading = true;
+  streams: StreamItem[] = [];
+
+  processing = false;
   errorMessage = '';
+
   weekDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
   activeWeekRange = '';
 
+  isStreamFormOpen = false;
+  streamDayIndex = 0;
+  streamTitle = '';
+  streamGame = '';
+  streamStartTime = '';
+  streamEndTime = '';
+
+  private updateSubscription: any;
+
   ngOnInit() {
-    this.loadPlannings();
+    this.chargerPlannings();
+    
+    this.updateSubscription = this.planningService.planningsUpdated$.subscribe(() => {
+      this.chargerPlannings();
+    });
   }
 
-  loadPlannings() {
-    this.isLoading = true;
+  ngOnDestroy() {
+    if (this.updateSubscription) {
+      this.updateSubscription.unsubscribe();
+    }
+  }
+
+  chargerPlannings() {
+    this.processing = true;
     this.errorMessage = '';
 
     this.planningService.getPlannings().subscribe({
       next: (response) => {
-        this.plannings = response.plannings;
-        this.activePlanning = this.plannings[0] || null;
-        this.activeWeekRange = this.activePlanning
-          ? this.formatWeekRange(this.activePlanning.week_start_date)
-          : '';
-        this.isLoading = false;
+        this.plannings = response.plannings || [];
+        if (this.plannings.length > 0) {
+          this.selectionnnerPlanning(this.plannings[0]);
+        } else {
+          this.activePlanning = null;
+          this.streams = [];
+        }
+        this.processing = false;
       },
       error: (error) => {
-        this.errorMessage = error?.error?.error || 'Erreur lors du chargement.';
-        this.isLoading = false;
+        this.errorMessage = error?.error?.error || 'Erreur lors du chargement des plannings';
+        this.processing = false;
       }
     });
   }
 
-  selectPlanning(planning: Planning) {
+  selectionnnerPlanning(planning: Planning) {
     this.activePlanning = planning;
-    this.activeWeekRange = this.formatWeekRange(planning.week_start_date);
+    this.activeWeekRange = this.calculerPlage(planning.week_start_date);
+    this.chargerStreams(planning.id);
   }
 
-  createPlanning() {
-    const weekStart = this.getWeekStartDate(new Date());
-    const weekStartStr = this.toDateInputValue(weekStart);
-    const title = `Planning semaine du ${this.formatDateLabel(weekStart)}`;
-
-    this.planningService.createPlanning(title, weekStartStr).subscribe({
+  chargerStreams(planningId: number) {
+    this.planningService.getStreams(planningId).subscribe({
       next: (response) => {
-        this.loadPlannings();
+        this.streams = response.streams || [];
       },
       error: (error) => {
-        this.errorMessage = error?.error?.error || 'Erreur lors de la création.';
+        this.errorMessage = error?.error?.error || 'Erreur lors du chargement des streams';
       }
     });
   }
 
-  deletePlanning(planning: Planning) {
-    this.planningService.deletePlanning(planning.id).subscribe({
+  ouvrirFormulaireStream(dayIndex: number) {
+    this.streamDayIndex = dayIndex;
+    this.streamTitle = '';
+    this.streamGame = '';
+    this.streamStartTime = '';
+    this.streamEndTime = '';
+    this.isStreamFormOpen = true;
+  }
+
+  fermerFormulaire() {
+    this.isStreamFormOpen = false;
+  }
+
+  creerStream() {
+    if (!this.activePlanning) {
+      this.errorMessage = 'Aucun planning sélectionné';
+      return;
+    }
+    if (!this.streamTitle.trim()) {
+      this.errorMessage = 'Le titre est requis';
+      return;
+    }
+    if (!this.streamStartTime) {
+      this.errorMessage = 'L\'heure de début est requise';
+      return;
+    }
+    if (!this.streamEndTime) {
+      this.errorMessage = 'L\'heure de fin est requise';
+      return;
+    }
+
+    this.planningService.createStream(this.activePlanning.id, {
+      title: this.streamTitle.trim(),
+      game: this.streamGame.trim() || null,
+      day_index: this.streamDayIndex,
+      start_time: this.streamStartTime,
+      end_time: this.streamEndTime
+    }).subscribe({
       next: () => {
-        this.loadPlannings();
+        this.chargerStreams(this.activePlanning!.id);
+        this.fermerFormulaire();
       },
       error: (error) => {
-        this.errorMessage = error?.error?.error || 'Erreur lors de la suppression.';
+        this.errorMessage = error?.error?.error || 'Erreur lors de la création du stream';
       }
     });
   }
 
-  private getWeekStartDate(date: Date): Date {
-    const result = new Date(date);
-    const day = result.getDay();
-    const diff = (day + 6) % 7;
-    result.setDate(result.getDate() - diff);
-    result.setHours(0, 0, 0, 0);
-    return result;
+  supprimerPlanning(planning: Planning) {
+    if (confirm(`Supprimer "${planning.title}" ?`)) {
+      this.planningService.deletePlanning(planning.id).subscribe({
+        next: () => {
+          this.chargerPlannings();
+        },
+        error: (error) => {
+          this.errorMessage = error?.error?.error || 'Erreur lors de la suppression';
+        }
+      });
+    }
   }
 
-  formatWeekRange(weekStart: string): string {
-    const startDate = this.parseDate(weekStart);
-    const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + 6);
-
-    const startLabel = this.formatDateLabel(startDate);
-    const endLabel = `${endDate.getDate()} ${this.monthName(endDate.getMonth())}`;
-    return `${startLabel} -> ${endLabel}`;
+  obtenirStreamsJour(dayIndex: number): StreamItem[] {
+    return this.streams.filter(stream => stream.day_index === dayIndex);
   }
 
-  private formatDateLabel(date: Date): string {
-    return `${date.getDate()} ${this.monthName(date.getMonth())}`;
+  formaterHeure(heure: string): string {
+    if (!heure) return '';
+    return heure.slice(0, 5);
   }
 
-  private toDateInputValue(date: Date): string {
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, '0');
-    const day = `${date.getDate()}`.padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  calculerPlage(dateDebut: string): string {
+    const debut = this.convertirDate(dateDebut);
+    const fin = new Date(debut);
+    fin.setDate(fin.getDate() + 6); // 7 jours = 6 jours après le début
+
+    const debutLabel = this.formaterDate(debut);
+    const finLabel = `${fin.getDate()} ${this.moisLabel(fin.getMonth())}`;
+    
+    return `${debutLabel} -> ${finLabel}`;
   }
 
-  private parseDate(value: string): Date {
-    const [year, month, day] = value.split('-').map(Number);
-    return new Date(year, (month || 1) - 1, day || 1);
+  private formaterDate(date: Date): string {
+    return `${date.getDate()} ${this.moisLabel(date.getMonth())}`;
   }
 
-  private monthName(index: number): string {
-    const months = [
-      'Janvier',
-      'Fevrier',
-      'Mars',
-      'Avril',
-      'Mai',
-      'Juin',
-      'Juillet',
-      'Aout',
-      'Septembre',
-      'Octobre',
-      'Novembre',
-      'Decembre'
+  private convertirDate(dateStr: string): Date {
+    const [annee, mois, jour] = dateStr.split('-').map(Number);
+    return new Date(annee, mois - 1, jour);
+  }
+
+  private moisLabel(indexMois: number): string {
+    const mois = [
+      'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
+      'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre'
     ];
-    return months[index] || '';
+    return mois[indexMois] || '';
   }
 }

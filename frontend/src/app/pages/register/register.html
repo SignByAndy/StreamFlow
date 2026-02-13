@@ -1,12 +1,16 @@
 <div class="register-container">
   <h2>Créer un compte</h2>
 
-  <!-- Message d'erreur -->
-  <div class="error-message" *ngIf="errorMessage">
-    {{ errorMessage }}
-  </div>
+  <!-- Affiche les erreurs -->
+  @if (errorMessage) {
+    <div class="error-message">
+      {{ errorMessage }}
+    </div>
+  }
 
+  <!-- Formulaire d'inscription -->
   <form (ngSubmit)="onRegister()" #registerForm="ngForm">
+    <!-- Champ: Nom complet -->
     <div class="form-group">
       <label for="name">Nom complet</label>
       <input
@@ -16,10 +20,11 @@
         [(ngModel)]="name"
         name="name"
         required
-        [disabled]="isLoading"
+        [disabled]="processing"
       />
     </div>
 
+    <!-- Champ: Email -->
     <div class="form-group">
       <label for="email">Email</label>
       <input
@@ -29,10 +34,11 @@
         [(ngModel)]="email"
         name="email"
         required
-        [disabled]="isLoading"
+        [disabled]="processing"
       />
     </div>
 
+    <!-- Champ: Mot de passe -->
     <div class="form-group">
       <label for="password">Mot de passe</label>
       <input
@@ -42,10 +48,11 @@
         [(ngModel)]="password"
         name="password"
         required
-        [disabled]="isLoading"
+        [disabled]="processing"
       />
     </div>
 
+    <!-- Champ: Confirmation du mot de passe -->
     <div class="form-group">
       <label for="confirmPassword">Confirmer le mot de passe</label>
       <input
@@ -55,19 +62,21 @@
         [(ngModel)]="confirmPassword"
         name="confirmPassword"
         required
-        [disabled]="isLoading"
+        [disabled]="processing"
       />
     </div>
 
+    <!-- Bouton: S'inscrire -->
     <button 
       type="submit" 
-      [disabled]="isLoading || !registerForm.valid"
+      [disabled]="processing || !registerForm.valid"
       class="btn-primary"
     >
-      {{ isLoading ? 'Inscription en cours...' : 'S\'inscrire' }}
+      {{ processing ? 'Inscription en cours...' : 'S\'inscrire' }}
     </button>
   </form>
 
+  <!-- Lien vers connexion -->
   <div class="footer-links">
     <p>Vous avez déjà un compte? <a href="javascript:void(0)" (click)="goToLogin()">Se connecter</a></p>
   </div>
