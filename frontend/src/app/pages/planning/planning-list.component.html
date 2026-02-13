@@ -1,0 +1,30 @@
+<div class="plannings-container">
+  <div class="header">
+    <h2>Mes plannings</h2>
+    <button class="btn-add" (click)="goToCreate()">+ Nouveau planning</button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">Chargement...</div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!isLoading && plannings.length === 0" class="empty">
+    <p>Aucun planning pour le moment.</p>
+    <button class="btn-primary" (click)="goToCreate()">Créer votre premier planning</button>
+  </div>
+
+  <div *ngIf="!isLoading && plannings.length > 0" class="plannings-grid">
+    <div *ngFor="let planning of plannings" class="planning-card">
+      <h3>{{ planning.title }}</h3>
+      <p class="description">{{ planning.description || 'Pas de description' }}</p>
+      <p class="date">Créé le {{ planning.created_at | date: 'dd/MM/yyyy' }}</p>
+      <div class="actions">
+        <button class="btn-edit" (click)="goToEdit(planning.id)">Modifier</button>
+        <button class="btn-duplicate" (click)="duplicate(planning.id)">Dupliquer</button>
+        <button class="btn-delete" (click)="delete(planning.id)">Supprimer</button>
+      </div>
+    </div>
+  </div>
+</div>

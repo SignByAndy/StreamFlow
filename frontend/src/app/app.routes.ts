@@ -28,16 +28,17 @@ export const routes: Routes = [
   {
     path: 'plannings',
     canActivate: [AuthGuard],
-    children: [
-      {
-        path: 'create',
-        component: PlanningFormComponent
-      },
-      {
-        path: 'edit/:id',
-        component: PlanningFormComponent
-      }
-    ]
+    component: PlanningListComponent
+  },
+  {
+    path: 'plannings/create',
+    canActivate: [AuthGuard],
+    component: PlanningFormComponent
+  },
+  {
+    path: 'plannings/edit/:id',
+    canActivate: [AuthGuard],
+    component: PlanningFormComponent
   },
   {
     path: '**',

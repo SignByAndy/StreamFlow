@@ -15,6 +15,7 @@ const pool = new Pool({
 
 /**
  * Initialise les tables de la base de données
+ * Les tables ne sont créées que si elles n'existent pas
  */
 async function initDatabase() {
   try {
@@ -24,7 +25,7 @@ async function initDatabase() {
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
+        password VARCHAR(512) NOT NULL,
         twitch_channel VARCHAR(255),
         logo_url VARCHAR(500),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -57,9 +58,9 @@ async function initDatabase() {
       )
     `);
 
-    console.log('✅ Tables créées avec succès');
+    console.log('✅ Tables initialisées');
   } catch (err) {
-    console.error('❌ Erreur lors de la création des tables:', err);
+    console.error('❌ Erreur lors de l\'initialisation:', err);
   }
 }
 

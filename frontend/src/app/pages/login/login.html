@@ -5,7 +5,7 @@
     {{ errorMessage }}
   </div>
 
-  <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+  <form (ngSubmit)="onLogin(loginForm)" #loginForm="ngForm">
     <div class="form-group">
       <label for="email">Email</label>
       <input
@@ -37,7 +37,7 @@
       [disabled]="isLoading || !loginForm.valid"
       class="btn-primary"
     >
-      {{ isLoading ? 'Connexion en cours...' : 'Se connecter' }}
+      Se connecter
     </button>
   </form>
 

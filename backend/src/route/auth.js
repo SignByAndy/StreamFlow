@@ -1,6 +1,6 @@
 const express = require('express');
 const { pool } = require('../db');
-const { hashPassword, verifyPassword } = require('../utils/password');
+const { verifyPassword } = require('../utils/password');
 const { generateToken } = require('../utils/jwt');
 const { authenticateToken } = require('../middleware/auth');
 
@@ -19,11 +19,9 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Tous les champs sont requis' });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 6 caractères' });
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 8 caractères' });
     }
-
-    // Vérifier si l'email existe déjà
     const existingUser = await pool.query(
       'SELECT id FROM users WHERE email = $1',
       [email]
@@ -33,13 +31,10 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Cet email est déjà utilisé' });
     }
 
-    // Hasher le mot de passe
-    const hashedPassword = await hashPassword(password);
-
-    // Créer l'utilisateur
+    // Créer l'utilisateur - le password reçu est déjà hashé côté client
     const result = await pool.query(
       'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email, created_at',
-      [name, email, hashedPassword]
+      [name, email, password]
     );
 
     const user = result.rows[0];

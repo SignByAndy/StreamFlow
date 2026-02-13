@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, BehaviorSubject, throwError, timeout } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { CryptoService } from './crypto.service';
 
 export interface User {
@@ -55,10 +55,15 @@ export class AuthService {
       email,
       password: hashedPassword
     }).pipe(
+      timeout(10000),
       tap(response => {
         localStorage.setItem('token', response.token);
         localStorage.setItem('currentUser', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
+      }),
+      catchError(error => {
+        console.error('❌ Erreur register - status:', error.status, 'body:', error.error);
+        return throwError(() => error);
       })
     ).toPromise() as Promise<AuthResponse>;
   }
@@ -73,10 +78,15 @@ export class AuthService {
       email,
       password: hashedPassword
     }).pipe(
+      timeout(10000),
       tap(response => {
         localStorage.setItem('token', response.token);
         localStorage.setItem('currentUser', JSON.stringify(response.user));
         this.currentUserSubject.next(response.user);
+      }),
+      catchError(error => {
+        console.error('❌ Erreur login - status:', error.status, 'body:', error.error);
+        return throwError(() => error);
       })
     ).toPromise() as Promise<AuthResponse>;
   }

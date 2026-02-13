@@ -1,33 +1,13 @@
-const crypto = require('crypto');
-
-function generateSalt() {
-  return crypto.randomBytes(16).toString('hex');
-}
-
 /**
- * Hache un mot de passe avec un salt
- * @param {string} password - Mot de passe en clair
- * @returns {Promise<string>} - Hash au format salt:hash
+ * Vérifie si un mot de passe hasché correspond au hash stocké
+ * @param {string} passwordHash - Hash SHA-256 du password (depuis le client)
+ * @param {string} storedHash - Hash stocké en BDD
+ * @returns {Promise<boolean>} - true si les hashes correspondent
  */
-function hashPassword(password) {
-  const salt = generateSalt();
-  const hash = crypto.createHash('sha256').update(password + salt).digest('hex');
-  return Promise.resolve(salt + ':' + hash);
-}
-
-/**
- * Vérifie si un mot de passe correspond au hash
- * @param {string} password - Mot de passe en clair
- * @param {string} hash - Hash stocké (format salt:hash)
- * @returns {Promise<boolean>} - true si le mot de passe correspond
- */
-function verifyPassword(password, hash) {
-  const [salt, originalHash] = hash.split(':');
-  const testHash = crypto.createHash('sha256').update(password + salt).digest('hex');
-  return Promise.resolve(originalHash === testHash);
+function verifyPassword(passwordHash, storedHash) {
+  return Promise.resolve(passwordHash === storedHash);
 }
 
 module.exports = {
-  hashPassword,
   verifyPassword
 };

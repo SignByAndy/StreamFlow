@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -26,7 +26,7 @@ export class LoginComponent {
   errorMessage = '';
   isLoading = false;
 
-  async onLogin() {
+  async onLogin(form: NgForm) {
     this.errorMessage = '';
 
     // Validation
@@ -55,13 +55,22 @@ export class LoginComponent {
 
     try {
       const response = await this.authService.login(this.email, this.password);
-      console.log('Connexion réussie:', response);
-      // Rediriger vers dashboard
       this.router.navigate(['/dashboard']);
     } catch (error: any) {
-      this.errorMessage = error?.error?.error || 'Email ou mot de passe incorrect';
-      console.error('Erreur login:', error);
-    } finally {
+      // Extraire le message d'erreur du serveur
+      if (error?.error?.error) {
+        this.errorMessage = error.error.error;
+      } else if (typeof error?.error === 'string') {
+        this.errorMessage = error.error;
+      } else if (error?.message) {
+        this.errorMessage = error.message;
+      } else {
+        this.errorMessage = 'Email ou mot de passe incorrect';
+      }
+      
+      this.password = '';
+      form.controls['password']?.reset();
+      // Reset isLoading immédiatement
       this.isLoading = false;
     }
   }
