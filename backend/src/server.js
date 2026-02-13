@@ -6,7 +6,6 @@ const { initDatabase } = require('./db');
 // Import des routes
 const authRoutes = require('./route/auth');
 const planningRoutes = require('./route/planning');
-const eventRoutes = require('./route/event');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,8 +21,7 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: {
       auth: '/api/auth',
-      plannings: '/api/plannings',
-      events: '/api/events'
+      plannings: '/api/plannings'
     }
   });
 });
@@ -31,7 +29,6 @@ app.get('/', (req, res) => {
 // Routes API
 app.use('/api/auth', authRoutes);
 app.use('/api/plannings', planningRoutes);
-app.use('/api/events', eventRoutes);
 
 // Gestion des routes non trouvées
 app.use((req, res) => {

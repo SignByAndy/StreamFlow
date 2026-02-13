@@ -85,12 +85,13 @@ import { AuthService } from '../../services/auth.service';
     .main-content {
       padding: 20px;
     }
+
   `]
 })
 export class DashboardComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
-
+  
   currentUser = this.authService.getCurrentUser();
 
   logout() {

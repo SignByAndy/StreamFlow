@@ -46,11 +46,6 @@ export class LoginComponent {
       return;
     }
 
-    if (this.password.length < 6) {
-      this.errorMessage = 'Le mot de passe doit contenir au moins 6 caractères';
-      return;
-    }
-
     this.isLoading = true;
 
     try {

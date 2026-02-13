@@ -1,30 +1,66 @@
-<div class="plannings-container">
-  <div class="header">
-    <h2>Mes plannings</h2>
-    <button class="btn-add" (click)="goToCreate()">+ Nouveau planning</button>
-  </div>
+<div class="planning-shell">
+  <aside class="planning-sidebar">
+    <div class="sidebar-header">
+      <div>
+        <h2>Mes plannings</h2>
+        <div class="subtitle">Choisis un planning</div>
+      </div>
+      <button class="btn-add" (click)="createPlanning()">
+        + Nouveau planning
+      </button>
+    </div>
 
-  <div *ngIf="isLoading" class="loading">Chargement...</div>
+    <div *ngIf="isLoading" class="status">Chargement...</div>
+    <div *ngIf="!isLoading && plannings.length === 0" class="status">
+      Aucun planning pour le moment.
+    </div>
 
-  <div *ngIf="errorMessage" class="error-message">
-    {{ errorMessage }}
-  </div>
-
-  <div *ngIf="!isLoading && plannings.length === 0" class="empty">
-    <p>Aucun planning pour le moment.</p>
-    <button class="btn-primary" (click)="goToCreate()">Créer votre premier planning</button>
-  </div>
-
-  <div *ngIf="!isLoading && plannings.length > 0" class="plannings-grid">
-    <div *ngFor="let planning of plannings" class="planning-card">
-      <h3>{{ planning.title }}</h3>
-      <p class="description">{{ planning.description || 'Pas de description' }}</p>
-      <p class="date">Créé le {{ planning.created_at | date: 'dd/MM/yyyy' }}</p>
-      <div class="actions">
-        <button class="btn-edit" (click)="goToEdit(planning.id)">Modifier</button>
-        <button class="btn-duplicate" (click)="duplicate(planning.id)">Dupliquer</button>
-        <button class="btn-delete" (click)="delete(planning.id)">Supprimer</button>
+    <div class="planning-list" *ngIf="plannings.length > 0">
+      <div
+        class="planning-item"
+        *ngFor="let planning of plannings"
+        [class.active]="activePlanning?.id === planning.id"
+        (click)="selectPlanning(planning)"
+      >
+        <div>
+          <div class="title">{{ planning.title }}</div>
+          <div class="date">{{ formatWeekRange(planning.week_start_date) }}</div>
+        </div>
+        <button
+          class="btn-delete"
+          type="button"
+          aria-label="Supprimer le planning"
+          (click)="$event.stopPropagation(); deletePlanning(planning)"
+        >
+          x
+        </button>
       </div>
     </div>
-  </div>
+
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+  </aside>
+
+  <section class="planning-board">
+    <div class="board-header">
+      <div>
+        <div class="board-title">{{ activePlanning?.title || 'Planning de stream' }}</div>
+        <div class="board-range">{{ activeWeekRange }}</div>
+      </div>
+    </div>
+
+    <div class="week-grid" *ngIf="activePlanning; else emptyBoard">
+      <div class="day-column" *ngFor="let day of weekDays">
+        <div class="day-header">{{ day }}</div>
+        <div class="day-slot">
+          <span>+</span>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #emptyBoard>
+      <div class="empty-board">
+        Crée un planning pour afficher la grille.
+      </div>
+    </ng-template>
+  </section>
 </div>
